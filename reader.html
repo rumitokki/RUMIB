@@ -1,42 +1,35 @@
 
 <!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8">
-  <title>세라자엘</title>
-  <script src="https://unpkg.com/epubjs/dist/epub.min.js"></script>
-  <style>
-    body { margin: 0; font-family: sans-serif; background: #fff0f5; }
-    #viewer { height: 90vh; margin: 2vh; border: 2px solid #ffc0cb; }
-    header { background: pink; text-align: center; padding: 1rem; font-size: 1.5rem; font-weight: bold; }
-    nav { display: flex; justify-content: space-between; padding: 0 1rem; }
-    button { background: #ffc0cb; border: none; padding: 0.5rem 1rem; font-weight: bold; cursor: pointer; }
-  </style>
-</head>
-<body>
-  <header>세라자엘</header>
-  <nav>
-    <button onclick="prevPage()">← 이전</button>
-    <button onclick="nextPage()">다음 →</button>
-  </nav>
-  <div id="viewer"></div>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>세라자엘</title>
+    <script src="https://unpkg.com/epubjs/dist/epub.min.js"></script>
+    <style>
+      body {
+        background: pink;
+        font-family: sans-serif;
+      }
+      #viewer {
+        height: 90vh;
+        width: 100%;
+        border: 1px solid #ddd;
+        background: white;
+      }
+    </style>
+  </head>
+  <body>
+    <button onclick="history.back()">← 이전</button>
+    <h1 style="text-align:center">세라자엘</h1>
+    <div id="viewer"></div>
 
-  <script>
-    const book = ePub("./serazael1_book.epub");
-    const rendition = book.renderTo("viewer", {
-      width: "100%",
-      height: "100%",
-    });
-
-    rendition.display();
-
-    function nextPage() {
-      rendition.next();
-    }
-
-    function prevPage() {
-      rendition.prev();
-    }
-  </script>
-</body>
+    <script>
+      const book = ePub("serazael1_book.epub");
+      const rendition = book.renderTo("viewer", {
+        width: "100%",
+        height: "100%",
+      });
+      rendition.display();
+    </script>
+  </body>
 </html>

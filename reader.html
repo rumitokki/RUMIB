@@ -108,8 +108,7 @@
     <label>
       여백
       <select id="marginSelect">
-        <option value="2rem">넉넉</option>
-        <option value="1rem">보통</option>
+        <option value="1rem" selected>보통</option>
         <option value="0.2rem">좁게</option>
         <option value="0rem">최소</option>
       </select>
@@ -150,7 +149,7 @@
       color: '#4a2343',
       fontFamily: "'Nanum Gothic','나눔고딕','맑은 고딕',sans-serif",
       fontSize: 16,
-      margin: '2rem'
+      margin: '1rem'   // ⭐️ 기본값 "보통"!
     };
     let isDark = false;
     let currentSpread = "none";

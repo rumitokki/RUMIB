@@ -3,67 +3,40 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>세라자엘 웹뷰어</title>
+  <title>세라자엘</title>
   <script src="https://unpkg.com/epubjs/dist/epub.min.js"></script>
   <style>
-    body {
-      margin: 0;
-      background-color: #fffdf9;
-      font-family: sans-serif;
-    }
-    #viewer {
-      height: 100vh;
-      width: 100%;
-    }
-    #toolbar {
-      background: #fff0f3;
-      padding: 0.5rem 1rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-    button {
-      background-color: #fda9b5;
-      border: none;
-      color: white;
-      padding: 0.5rem 1rem;
-      font-size: 1rem;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #f76b84;
-    }
+    body { margin: 0; font-family: sans-serif; background: #fff0f5; }
+    #viewer { height: 90vh; margin: 2vh; border: 2px solid #ffc0cb; }
+    header { background: pink; text-align: center; padding: 1rem; font-size: 1.5rem; font-weight: bold; }
+    nav { display: flex; justify-content: space-between; padding: 0 1rem; }
+    button { background: #ffc0cb; border: none; padding: 0.5rem 1rem; font-weight: bold; cursor: pointer; }
   </style>
 </head>
 <body>
+  <header>세라자엘</header>
+  <nav>
+    <button onclick="prevPage()">← 이전</button>
+    <button onclick="nextPage()">다음 →</button>
+  </nav>
+  <div id="viewer"></div>
 
-<div id="toolbar">
-  <button onclick="prevPage()">← 이전</button>
-  <strong>세라자엘</strong>
-  <button onclick="nextPage()">다음 →</button>
-</div>
-<div id="viewer"></div>
+  <script>
+    const book = ePub("./serazael1_book.epub");
+    const rendition = book.renderTo("viewer", {
+      width: "100%",
+      height: "100%",
+    });
 
-<script>
-  const book = ePub("https://rumitokki.github.io/RUMIB/세라자엘1.epub");
-  const rendition = book.renderTo("viewer", {
-    width: "100%",
-    height: "100%",
-    spread: "none"
-  });
+    rendition.display();
 
-  rendition.display();
+    function nextPage() {
+      rendition.next();
+    }
 
-  function nextPage() {
-    rendition.next();
-  }
-
-  function prevPage() {
-    rendition.prev();
-  }
-</script>
-
+    function prevPage() {
+      rendition.prev();
+    }
+  </script>
 </body>
 </html>

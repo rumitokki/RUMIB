@@ -1,18 +1,9 @@
-
 <!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8" />
     <title>세라자엘</title>
-   <script>
-  const book = ePub("https://rumitokki.github.io/RUMIB/serazael1_book.epub");
-  const rendition = book.renderTo("viewer", {
-    width: "100%",
-    height: "100%",
-  });
-  rendition.display();
-</script>
-
+    <script src="https://unpkg.com/epubjs/dist/epub.min.js"></script>
     <style>
       body {
         background: pink;
@@ -32,12 +23,12 @@
     <div id="viewer"></div>
 
     <script>
-      const book = ePub("serazael1_book.epub");
+      const book = ePub("https://rumitokki.github.io/RUMIB/serazael1_book.epub");
       const rendition = book.renderTo("viewer", {
         width: "100%",
         height: "100%",
       });
-      rendition.display();
+      rendition.display().catch(err => console.error("EPUB 로딩 실패", err));
     </script>
   </body>
 </html>

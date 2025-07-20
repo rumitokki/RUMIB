@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>세라자엘 E-Book 뷰어</title>
+  <!-- epub.js & JSZip -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://unpkg.com/epubjs/dist/epub.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Nanum Gothic', '나눔고딕', '맑은 고딕', sans-serif;
+      background: #fff0f5;
+    }
+    header {
+      background: pink;
+      text-align: center;
+      padding: 1rem;
+      font-size: 1.5rem;
+      font-weight: bold;
+      letter-spacing: 0.2rem;
+    }
+    #controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      justify-content: center;
+      align-items: center;
+      background: #ffe4ef;
+      padding: 0.7rem 0.5rem;
+    }
+    #controls select, #controls button, #controls input {
+      margin: 0 0.3rem;
+      padding: 0.35rem 0.7rem;
+      border-radius: 1rem;
+      border: 1px solid #ffc0cb;
+      background: #fff;
+      font-size: 1rem;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    #controls button.theme {
+      background: #444;
+      color: #fff;
+      border: 1px solid #bbb;
+    }
+    #viewer {
+      height: 80vh;
+      margin: 2vh;
+      border: 2px solid #ffc0cb;
+      background: #fff0f5;
+      user-select: none;
+      -webkit-user-select: none;
+      -ms-user-select: none;
+      -moz-user-select: none;
+      transition: background 0.2s, color 0.2s;
+    }
+    nav {
+      display: flex;
+      justify-content: space-between;
+      padding: 0 1rem;
+    }
+    button {
+      background: #ffc0cb;
+      border: none;
+      padding: 0.5rem 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      border-radius: 1rem;
+      box-shadow: 0 2px 8px #ffe4ef90;
+      font-size: 1rem;
+      margin: 0.5rem 0;
+      transition: background 0.2s;
+    }
+    button:hover {
+      background: #ffa6c9;
+    }
+  </style>
+</head>
+<body>
+  <header>세라자엘</header>
+
+  <div id="controls">
+    <button class="theme" onclick="toggleTheme()">🌞/🌙 다크모드</button>
+    <label>글자크기
+      <button onclick="changeFontSize(-2)">-</button>
+      <span id="fontSizeValue">16</span>px
+      <button onclick="changeFontSize(2)">+</button>
+    </label>
+    <label>
+      폰트
+      <select id="fontSelect">
+        <option value="'Nanum Gothic','나눔고딕','맑은 고딕',sans-serif">나눔고딕/맑은고딕</option>
+        <option value="'Noto Serif KR','serif'">Noto Serif KR</option>
+        <option value="'Arial',sans-serif">Arial</option>
+        <option value="'Georgia',serif">Georgia</option>
+        <option value="'Courier New',monospace">Courier New</option>
+      </select>
+    </label>
+    <label>
+      글자색
+      <input type="color" id="fontColorPicker" value="#4a2343">
+    </label>
+    <label>
+      배경색
+      <input type="color" id="bgColorPicker" value="#fff0f5">
+    </label>
+    <label>
+      여백
+      <select id="marginSelect">
+        <option value="2rem">넉넉</option>
+        <option value="1rem">보통</option>
+        <option value="0.2rem">좁게</option>
+        <option value="0rem">최소</option>
+      </select>
+    </label>
+    <label>
+      <button onclick="setSpread('none')">한 페이지</button>
+      <button onclick="setSpread('auto')">두 페이지(자동)</button>
+    </label>
+  </div>
+
+  <nav>
+    <button onclick="prevPage()">← 이전</button>
+    <button onclick="nextPage()">다음 →</button>
+  </nav>
+  <div id="viewer"></div>
+
+  <script>
+    // 복사/소스방지
+    document.addEventListener('copy', e => e.preventDefault());
+    document.addEventListener('contextmenu', e => e.preventDefault());
+    document.addEventListener('selectstart', e => e.preventDefault());
+    document.addEventListener('keydown', function(e) {
+      if (
+        e.key === 'F12' ||
+        (e.ctrlKey && e.key.toLowerCase() === 'u') ||
+        (e.ctrlKey && e.shiftKey && ['i','j','c'].includes(e.key.toLowerCase()))
+      ) {
+        e.preventDefault();
+        return false;
+      }
+    });
+
+    // ====== epub 자동 로딩 (여기서 epub 파일명만 맞추세요!) =====
+    let book = ePub("serazael1_book.epub"); // 파일명/경로만 맞추면 됨!
+    let rendition, isLoaded = false;
+    let currentTheme = {
+      background: '#fff0f5',
+      color: '#4a2343',
+      fontFamily: "'Nanum Gothic','나눔고딕','맑은 고딕',sans-serif",
+      fontSize: 16,
+      margin: '2rem'
+    };
+    let isDark = false;
+    let currentSpread = "none";
+    let currentLocation = null;
+
+    function applyTheme() {
+      if (!rendition) return;
+      rendition.themes.register("custom", {
+        "body": {
+          "background": currentTheme.background + " !important",
+          "color": currentTheme.color + " !important",
+          "font-family": currentTheme.fontFamily + " !important",
+          "font-size": currentTheme.fontSize + "px !important",
+          "margin-left": currentTheme.margin + " !important",
+          "margin-right": currentTheme.margin + " !important",
+          "padding-left": currentTheme.margin + " !important",
+          "padding-right": currentTheme.margin + " !important",
+          "line-height": "1.8 !important"
+        },
+        "html": {
+          "margin-left": currentTheme.margin + " !important",
+          "margin-right": currentTheme.margin + " !important",
+          "padding-left": currentTheme.margin + " !important",
+          "padding-right": currentTheme.margin + " !important"
+        },
+        "div": {
+          "margin-left": currentTheme.margin + " !important",
+          "margin-right": currentTheme.margin + " !important",
+          "padding-left": currentTheme.margin + " !important",
+          "padding-right": currentTheme.margin + " !important"
+        },
+        "p": {
+          "margin-bottom": "1.2em !important"
+        }
+      });
+      rendition.themes.select("custom");
+      document.getElementById('viewer').style.background = currentTheme.background;
+      document.getElementById('viewer').style.color = currentTheme.color;
+      document.getElementById('fontSizeValue').textContent = currentTheme.fontSize;
+    }
+
+    // epub 자동 렌더 (on page load)
+    window.onload = function() {
+      rendition = book.renderTo("viewer", {
+        width: "100%",
+        height: "100%",
+      });
+      rendition.spread(currentSpread);
+      rendition.display();
+      isLoaded = true;
+      applyTheme();
+
+      rendition.on('relocated', function(location) {
+        currentLocation = location.start.cfi;
+      });
+    };
+
+    function toggleTheme() {
+      isDark = !isDark;
+      if (isDark) {
+        currentTheme.background = "#222032";
+        currentTheme.color = "#f6eaf7";
+      } else {
+        currentTheme.background = document.getElementById('bgColorPicker').value;
+        currentTheme.color = document.getElementById('fontColorPicker').value;
+      }
+      applyTheme();
+    }
+
+    function changeFontSize(diff) {
+      currentTheme.fontSize = Math.max(10, currentTheme.fontSize + diff);
+      applyTheme();
+    }
+
+    document.getElementById('fontSelect').addEventListener('change', function() {
+      currentTheme.fontFamily = this.value;
+      applyTheme();
+    });
+
+    document.getElementById('fontColorPicker').addEventListener('input', function() {
+      currentTheme.color = this.value;
+      if (!isDark) applyTheme();
+    });
+    document.getElementById('bgColorPicker').addEventListener('input', function() {
+      currentTheme.background = this.value;
+      if (!isDark) applyTheme();
+    });
+
+    document.getElementById('marginSelect').addEventListener('change', function() {
+      currentTheme.margin = this.value;
+      applyTheme();
+    });
+
+    function setSpread(mode) {
+      currentSpread = mode;
+      if (rendition) {
+        let cfi = currentLocation || rendition.currentLocation()?.start?.cfi;
+        rendition.spread(mode);
+        if (cfi) {
+          rendition.display(cfi);
+        } else {
+          rendition.display();
+        }
+      }
+    }
+
+    function nextPage() {
+      if (rendition && isLoaded) rendition.next();
+    }
+    function prevPage() {
+      if (rendition && isLoaded) rendition.prev();
+    }
+  </script>
+</body>
+</html>
